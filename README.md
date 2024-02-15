@@ -2,10 +2,11 @@ Proof of Concept for Masters In Digital Transformation course offered by PUC-Rio
 
 FrontEnd to interact with a contract deployed to Sepolia Testnet Framework.
 
-Contract Address: 0xd94851250cfBE159644768D0c8E8b0220734Cb4d
+Contract Address: 
+https://sepolia.etherscan.io/address/0x89c6a06755be8ce794c4994ead34408f3307d55f
 
-Owner: 0x4E671838a8281C790Ac3465a8cb46A2D81F94eF9
+Contract Owner: 
+https://sepolia.etherscan.io/address/0x4e671838a8281c790ac3465a8cb46a2d81f94ef9
 
 The contract is public and permissionless.
 Real application should run on a private, permissioned network.
-
