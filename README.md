@@ -1,6 +1,6 @@
 **Proof of Concept for a dApp Interacting with a Smart Contract on the Sepolia Testnet.**
 
-The primary goal of this smart contract is to move the current process of maintaining the Fuel Movement Logbook ("Livro de Movimentação de Combustíveis" - LMC), which is filled out daily by fuel stations in Brazil to a blockchain-based solution.
+The primary goal of this smart contract is to emulate the current process of maintaining the Fuel Movement Logbook ("Livro de Movimentação de Combustíveis" - LMC), which is filled out daily by fuel stations in Brazil, in a blockchain-based solution.
 
 Project developed as a final assignment for the course Blockchain and Smart Contracts for Digital Transformation, which is a part of the Postgraduate Specialization Program Digital Transformation - Master in Digital Transformation offered by PUC-Rio.
 
