@@ -14,14 +14,6 @@ Note - this is PoC. Contract is public and permissionless, running on a test net
 
 -------
 
-Professor:
-Ronnie Paskin
+Professor: Ronnie Paskin
 
-Students:
-Elisa Santos
-João Paulo M. França
-Marcello Rubioli
-Marcus Ghedini
-Michele Mariano
-
-February 2024
+Students: Elisa Santos, João Paulo M. França, Marcello Rubioli, Marcus Ghedini, Michele Mariano
