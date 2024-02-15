@@ -1,4 +1,4 @@
-Proof of Concept for a dApp Interacting with a Smart Contract on the Sepolia Testnet.
+**Proof of Concept for a dApp Interacting with a Smart Contract on the Sepolia Testnet.**
 
 The primary goal of this smart contract is to replace the current process of maintaining the Fuel Movement Logbook ("Livro de Movimentação de Combustíveis" - LMC), which is filled out daily by fuel stations in Brazil.
 
