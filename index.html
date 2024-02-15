@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>LMC Blockchain</title>
+    <style>
+      body {
+        font-family: Verdana, sans-serif;
+      }
+      td {
+        text-align: right;
+        border: 1px solid black; 
+      }
+      th {
+        text-align: center;
+        border: 1px solid black; 
+      }
+      
+      table {
+        border-collapse: collapse; 
+      }
+      
+      
+    </style>
+  </head>
+  <body onload="addRow('productStockTable', 3);addRow('productsOutTable', 5);addRow('productsInTable', 6)">
+    <h1>LMC Blockchain</h1>
+    <hr>
+    <div id="errorModal" style="display:none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+      <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%;">
+        <p id="errorMessage"></p>
+      </div>
+    </div>
+    <h1>Data de Referencia</h1>
+    <input type="text" id="referenceDate" placeholder="Data (YYYY-MM-DD)">
+    <h2>Entrada de Produtos</h2>
+    <table id="productsInTable">
+      <thead>
+        <tr>
+          <th>Tanque</th>
+          <th>Vol (dl)</th>
+          <th>R$ (cents)</th>
+          <th>Produto</th>
+          <th>Chave XML</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be added here -->
+      </tbody>
+    </table>
+    <button onclick="addRow('productsInTable',6)">+ Linha</button>
+    <button onclick="productIn()">Enviar</button>
+    <h2>Saida de Produtos</h2>
+    <table id="productsOutTable">
+      <thead>
+        <tr>
+          <th>Tanque</th>
+          <th>Bico</th>
+          <th>Vol (dl)</th>
+          <th>R$ (cents)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be added here -->
+      </tbody>
+    </table>
+    <button onclick="addRow('productsOutTable',5)">+ Linha</button>
+    <button onclick="productOut()">Enviar</button>
+    <h2>Estoques Fim do Dia</h2>
+    <table id="productStockTable">
+      <thead>
+        <tr>
+          <th>Tanque</th>
+          <th>Vol (dl)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be added here -->
+      </tbody>
+    </table>
+    <button onclick="addRow('productStockTable',3)">+ Linha</button>
+    <button onclick="productStock()">Enviar</button>
+    <p></p>
+    <hr>
+    <h1>Auditoria</h1>
+    <input type="text" id="audit_address" placeholder="Digite o Endereço" value="0x3c17B0672b010bf4D0Ec45A286BF86b37A50749c">
+    <button onclick="audit()">Auditar</button>
+    <pre id="auditResult"></pre>
+    <h2>Entrada de Produtos</h2>
+    <table id="table1">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Tanque</th>
+          <th>Vol (dl)</th>
+          <th>R$ (cents)</th>
+          <th>Produto</th>
+          <th>ChaveXML</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be added here -->
+      </tbody>
+    </table>
+    <h2>Saidas de Produtos</h2>
+    <table id="table2">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Tanque</th>
+          <th>Bico</th>
+          <th>Vol (dl)</th>
+          <th>R$ (cents)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be added here -->
+      </tbody>
+    </table>
+    <h2>Estoques Fim do Dia</h2>
+    <table id="table3">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Tanque</th>
+          <th>Vol (dl)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows will be added here -->
+      </tbody>
+    </table>
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script src="app.js"></script>
+    <script src="today.js"></script>
+  </body>
+</html>
