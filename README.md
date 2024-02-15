@@ -1,15 +1,27 @@
-Proof of Concept for Masters In Digital Transformation course offered by PUC-Rio.
+Proof of Concept for a dApp Interacting with a Smart Contract on the Sepolia Testnet
 
-FrontEnd to interact with a contract deployed to Sepolia Testnet Framework.
+The primary goal of this smart contract is to replace the current process of maintaining the Fuel Movement Logbook ("Livro de Movimentação de Combustíveis" - LMC), which is filled out daily by fuel stations in Brazil.
+
+Project was developed as a final assignment for the course "Blockchain and Smart Contracts for Digital Transformation", which is a part of the Postgraduate Specialization Program in "Digital Transformation - Master in Digital Transformation" offered by PUC-Rio.
 
 Contract Address: 
 https://sepolia.etherscan.io/address/0x89c6a06755be8ce794c4994ead34408f3307d55f
 
-Contract Owner: 
-https://sepolia.etherscan.io/address/0x4e671838a8281c790ac3465a8cb46a2d81f94ef9
-
 See it running:
 https://lmc.jpfranca.com/
 
-The contract is public and permissionless.
-Real application should run on a private, permissioned network.
+Note - this is PoC. Contract is public and permissionless, running on a test network Teal application should run on a private, permissioned, production network.
+
+-------
+
+Professor:
+Ronnie Paskin
+
+Students:
+Elisa Santos
+João Paulo M. França
+Marcello Rubioli
+Marcus Ghedini
+Michele Mariano
+
+February 2024
