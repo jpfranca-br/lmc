@@ -46,41 +46,157 @@
 		"type": "event"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "auditTransactions",
+		"outputs": [
 			{
-				"internalType": "string",
-				"name": "referenceDate",
-				"type": "string"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "tankIds",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "volumeDeciliters",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "cashCents",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "string[]",
-				"name": "productNames",
-				"type": "string[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "invoiceXmlKeys",
-				"type": "uint256[]"
+				"components": [
+					{
+						"internalType": "address",
+						"name": "userAddress",
+						"type": "address"
+					},
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "referenceDate",
+								"type": "string"
+							},
+							{
+								"components": [
+									{
+										"internalType": "enum LMC.TransactionType",
+										"name": "transactionType",
+										"type": "uint8"
+									},
+									{
+										"internalType": "uint256",
+										"name": "tankId",
+										"type": "uint256"
+									},
+									{
+										"internalType": "uint256",
+										"name": "volumeDeciliters",
+										"type": "uint256"
+									},
+									{
+										"internalType": "uint256",
+										"name": "cashCents",
+										"type": "uint256"
+									},
+									{
+										"internalType": "string",
+										"name": "productName",
+										"type": "string"
+									},
+									{
+										"internalType": "uint256",
+										"name": "invoiceXmlKey",
+										"type": "uint256"
+									},
+									{
+										"internalType": "uint256",
+										"name": "nozzleId",
+										"type": "uint256"
+									}
+								],
+								"internalType": "struct LMC.TransactionData[]",
+								"name": "transactions",
+								"type": "tuple[]"
+							}
+						],
+						"internalType": "struct LMC.ProductTransaction",
+						"name": "transaction",
+						"type": "tuple"
+					}
+				],
+				"internalType": "struct LMC.AuditTransaction[]",
+				"name": "",
+				"type": "tuple[]"
 			}
 		],
-		"name": "productIn",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "userAddress",
+				"type": "address"
+			}
+		],
+		"name": "auditTransactions",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "userAddress",
+						"type": "address"
+					},
+					{
+						"components": [
+							{
+								"internalType": "string",
+								"name": "referenceDate",
+								"type": "string"
+							},
+							{
+								"components": [
+									{
+										"internalType": "enum LMC.TransactionType",
+										"name": "transactionType",
+										"type": "uint8"
+									},
+									{
+										"internalType": "uint256",
+										"name": "tankId",
+										"type": "uint256"
+									},
+									{
+										"internalType": "uint256",
+										"name": "volumeDeciliters",
+										"type": "uint256"
+									},
+									{
+										"internalType": "uint256",
+										"name": "cashCents",
+										"type": "uint256"
+									},
+									{
+										"internalType": "string",
+										"name": "productName",
+										"type": "string"
+									},
+									{
+										"internalType": "uint256",
+										"name": "invoiceXmlKey",
+										"type": "uint256"
+									},
+									{
+										"internalType": "uint256",
+										"name": "nozzleId",
+										"type": "uint256"
+									}
+								],
+								"internalType": "struct LMC.TransactionData[]",
+								"name": "transactions",
+								"type": "tuple[]"
+							}
+						],
+						"internalType": "struct LMC.ProductTransaction",
+						"name": "transaction",
+						"type": "tuple"
+					}
+				],
+				"internalType": "struct LMC.AuditTransaction[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -89,85 +205,35 @@
 				"internalType": "string",
 				"name": "referenceDate",
 				"type": "string"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "tankIds",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "nozzleIds",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "volumeDeciliters",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "cashCents",
-				"type": "uint256[]"
 			}
 		],
-		"name": "productOut",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
+		"name": "checkRecordExists",
+		"outputs": [
 			{
-				"internalType": "string",
-				"name": "referenceDate",
-				"type": "string"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "tankIds",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "volumeDeciliters",
-				"type": "uint256[]"
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
 			}
 		],
-		"name": "productStock",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
 		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
+		"name": "owner",
+		"outputs": [
 			{
 				"internalType": "address",
-				"name": "newOwner",
+				"name": "",
 				"type": "address"
 			}
 		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "audit",
+		"inputs": [],
+		"name": "readTransactions",
 		"outputs": [
 			{
 				"components": [
@@ -175,6 +241,71 @@
 						"internalType": "string",
 						"name": "referenceDate",
 						"type": "string"
+					},
+					{
+						"components": [
+							{
+								"internalType": "enum LMC.TransactionType",
+								"name": "transactionType",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "tankId",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "volumeDeciliters",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "cashCents",
+								"type": "uint256"
+							},
+							{
+								"internalType": "string",
+								"name": "productName",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "invoiceXmlKey",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "nozzleId",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct LMC.TransactionData[]",
+						"name": "transactions",
+						"type": "tuple[]"
+					}
+				],
+				"internalType": "struct LMC.ProductTransaction[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "referenceDate",
+				"type": "string"
+			},
+			{
+				"components": [
+					{
+						"internalType": "enum LMC.TransactionType",
+						"name": "transactionType",
+						"type": "uint8"
 					},
 					{
 						"internalType": "uint256",
@@ -200,193 +331,60 @@
 						"internalType": "uint256",
 						"name": "invoiceXmlKey",
 						"type": "uint256"
-					}
-				],
-				"internalType": "struct LMC.ProductIn[]",
-				"name": "",
-				"type": "tuple[]"
-			},
-			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "referenceDate",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "tankId",
-						"type": "uint256"
 					},
 					{
 						"internalType": "uint256",
 						"name": "nozzleId",
 						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "volumeDeciliters",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "cashCents",
-						"type": "uint256"
 					}
 				],
-				"internalType": "struct LMC.ProductOut[]",
-				"name": "",
-				"type": "tuple[]"
-			},
-			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "referenceDate",
-						"type": "string"
-					},
-					{
-						"internalType": "uint256",
-						"name": "tankId",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "volumeDeciliters",
-						"type": "uint256"
-					}
-				],
-				"internalType": "struct LMC.ProductStock[]",
-				"name": "",
+				"internalType": "struct LMC.TransactionData[]",
+				"name": "transactionsData",
 				"type": "tuple[]"
 			}
 		],
-		"stateMutability": "view",
+		"name": "recordTransaction",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
 		"inputs": [],
-		"name": "owner",
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "transactionRecords",
 		"outputs": [
 			{
+				"internalType": "string",
+				"name": "referenceDate",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "address",
-				"name": "",
+				"name": "newOwner",
 				"type": "address"
 			}
 		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "productIns",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "referenceDate",
-				"type": "string"
-			},
-			{
-				"internalType": "uint256",
-				"name": "tankId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "volumeDeciliters",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "cashCents",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "productName",
-				"type": "string"
-			},
-			{
-				"internalType": "uint256",
-				"name": "invoiceXmlKey",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "productOuts",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "referenceDate",
-				"type": "string"
-			},
-			{
-				"internalType": "uint256",
-				"name": "tankId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "nozzleId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "volumeDeciliters",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "cashCents",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "productStocks",
-		"outputs": [
-			{
-				"internalType": "string",
-				"name": "referenceDate",
-				"type": "string"
-			},
-			{
-				"internalType": "uint256",
-				"name": "tankId",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "volumeDeciliters",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	}
 ]
