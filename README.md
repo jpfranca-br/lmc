@@ -5,7 +5,7 @@ The primary goal of this smart contract is to emulate, in a blockchain-based sol
 Project developed as a final assignment for the course "Blockchain and Smart Contracts for Digital Transformation", which is a part of the Postgraduate Specialization Program "Master in Digital Transformation" offered by PUC-Rio.
 
 Contract Address: 
-https://sepolia.etherscan.io/address/0x89c6a06755be8ce794c4994ead34408f3307d55f
+https://sepolia.etherscan.io/address/0x6F1825dFBE0bF2140545336ad5a3Af1CF4E747f0
 
 See it running:
 https://lmc.jpfranca.com/
