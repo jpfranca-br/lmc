@@ -1,22 +1,22 @@
-**Proof of Concept for a dApp Interacting with a Smart Contract on the Sepolia Testnet.**
+**Demonstrating a Decentralized Application (dApp) Interaction with a Smart Contract on the Sepolia Testnet**
 
-The primary goal of this smart contract is to emulate, in a blockchain-based solution, the current process of maintaining the Fuel Movement Logbook ("Livro de Movimentação de Combustíveis" - LMC), which is filled out daily by fuel stations in Brazil.
+This project aims to digitally replicate the process of recording data in the Fuel Movement Logbook ("Livro de Movimentação de Combustíveis" - LMC), a daily requirement for Brazilian fuel stations, utilizing a blockchain framework.
 
-Project developed as a final assignment for the course "Blockchain and Smart Contracts for Digital Transformation", which is a part of the Postgraduate Specialization Program "Master in Digital Transformation" offered by PUC-Rio.
+This dApp was created as the capstone project for the "Blockchain and Smart Contracts for Digital Transformation" course, a key component of the "Master in Digital Transformation" Postgraduate Specialization Program at PUC-Rio.
 
-Contract Address: 
-https://sepolia.etherscan.io/address/0x729118e6AE5D15cAB465649c9b6fE20C4ec45A53
+Explore the Smart Contract:
+[Sepolia Testnet Contract Address](https://sepolia.etherscan.io/address/0x729118e6AE5D15cAB465649c9b6fE20C4ec45A53)
 
-See it running:
-https://lmc.jpfranca.com/
+Experience the dApp in Action:
+[LMC dApp Interface](https://lmc.jpfranca.com/)
 
-See it running with minimal frontend validation
-https://lmc.jpfranca.com/index-nocheck.html
+Alternative Access with Basic Frontend Validation:
+[LMC dApp - Basic Validation Version](https://lmc.jpfranca.com/index-nocheck.html)
 
-Note - this is a PoC. Contract is public and permissionless, running on a test network. Real application should run on a private, permissioned, production network.
+Please note: This project serves as a Proof of Concept (PoC). The contract is public and permissionless, operating on a test network. For actual deployment, a private, permissioned, production network is recommended.
 
 -------
 
-Professor: Ronnie Paskin
+Guided by Professor Ronnie Paskin
 
-Students: Elisa Santos, João Paulo M. França, Marcello Rubioli, Marcus Ghedini, Michele Mariano
+Team Members: Elisa Santos, João Paulo M. França, Marcello Rubioli, Marcus Ghedini, Michele Mariano
