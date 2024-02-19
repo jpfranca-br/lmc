@@ -44,7 +44,7 @@
     <!-- Table for transaction data -->
     <table id="transactionsTableInput">
             <tr>
-                <th style="width: 200px;">Tipo</th>
+                <th style="width: 280px;">Tipo</th>
                 <th style="width: 80px;">Tanque</th>
                 <th style="width: 80px;">Bico</th>
                 <th style="width: 160px;">Vol (dl)</th>
@@ -59,13 +59,15 @@
     <!-- Submit button -->
     <BR><BR><BR>
     <button id="submitTransactionButton">Enviar</button>
-    <br><br><br><hr><br>
-    <button id="readDataButton">Recuperar Dados Enviados</button>
-    
+
+    <br><br><br><hr><br><br><br>
+
+    <button id="readDataButton">Recuperar Dados Enviados - Usuário Conectado ou Todos (Owner)</button>
     
     <table id="transactionsTableOutput">
         <thead>
             <tr>
+                <th style="width: 80px;">Usuário</th>
                 <th style="width: 118px;">Data</th>
                 <th style="width: 80px;">Tipo</th>
                 <th style="width: 80px;">Tanque</th>
@@ -74,6 +76,24 @@
                 <th style="width: 160px;">R$ (cent)</th>
                 <th style="width: 80px;">Produto</th>
                 <th style="width: 380px;">Chave XML</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data rows will be added here -->
+        </tbody>
+    </table>
+
+    <br><br><br><hr><br><br><br>    
+        
+<button id="calculateVolumesButton">Calcular Divergencias - Usuário Conectado</button>
+<table id="volumesTableOutput">
+        <thead>
+            <tr>
+                <th style="width: 160px;">Tanque</th>
+                <th style="width: 160px;">Vol Entrada</th>
+                <th style="width: 160px;">Vol Saída</th>
+                <th style="width: 160px;">Vol Estoque</th>
+                <th style="width: 160px;">Divergência (%)</th>
             </tr>
         </thead>
         <tbody>
