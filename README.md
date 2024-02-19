@@ -21,3 +21,5 @@ Guided by Professor Ronnie Paskin
 Team Members: Elisa Santos, João Paulo M. França, Marcello Rubioli, Marcus Ghedini, Michele Mariano
 
 --------
+
+![Sequence Diagram](https://github.com/jpfranca-br/lmc/blob/main/images/sequencediagram.png)
