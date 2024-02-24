@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Assuming the first account is the user's account
             const userAccount = accounts[0];
             document.getElementById("errorMessage").textContent = "Conta conectada: " + userAccount;
-            return contract.methods.calculateVolumes().call({
+            return contract.methods.calculateDivergence().call({
                 from: userAccount
             });
         }).then(function(volumeCalculations) {

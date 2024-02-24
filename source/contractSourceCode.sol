@@ -43,20 +43,24 @@ contract LMC is Ownable {
     }
 
     uint256 private nextTransactionId = 1;
-    mapping(uint256 => ProductTransaction) private transactionRecords;
+    event Log(string message);
+    event LogUint(string message, uint256 value);
+    mapping(uint256 => ProductTransaction) public transactionRecords;
     mapping(address => uint256[]) private userTransactions;
     mapping(address => mapping(uint256 => bool)) private userDateRecords;
     mapping(address => uint256[]) private userTanks;
+    mapping(address => mapping(uint256 => uint256)) public userVolumeStockDate;
+    mapping(address => mapping(uint256 => uint256)) public userVolumeStock;
     mapping(address => mapping(uint256 => uint256)) private userVolumeIn;
     mapping(address => mapping(uint256 => uint256)) private userVolumeOut;
-    address[] private users; // Array to keep track of all users
+    address[] private users;
 
     constructor() Ownable(msg.sender) {}
 
     // Function to add tankId to userTanks if it's not already there
     function addTankIdIfNotPresent(uint256 tankId) private {
         // Retrieve the user's tank array
-        uint256[] memory tanks = userTanks[msg.sender];      ////////////////////////////////////
+        uint256[] memory tanks = userTanks[msg.sender];
 
         // Check if tankId is already in the array
         bool isPresent = false;
@@ -81,52 +85,98 @@ contract LMC is Ownable {
         ReferenceDate memory referenceDate,
         TransactionData[] memory transactionsData
     ) public {
-        uint256 year = referenceDate.year;
-        uint256 month = referenceDate.month;
-        uint256 day = referenceDate.day;
-        uint256 referenceDateTimestamp = BokkyPooBahsDateTimeLibrary
-            .timestampFromDate(year, month, day);
         // Check - date valid?
         require(
-            BokkyPooBahsDateTimeLibrary.isValidDate(year, month, day),
+            BokkyPooBahsDateTimeLibrary.isValidDate(
+                referenceDate.year,
+                referenceDate.month,
+                referenceDate.day
+            ),
             "Data invalida."
         );
         // Check - only one referenceDate per user can be stored on the blockchain
         require(
-            !userDateRecords[msg.sender][referenceDateTimestamp],
+            !userDateRecords[msg.sender][
+                BokkyPooBahsDateTimeLibrary.timestampFromDate(
+                    referenceDate.year,
+                    referenceDate.month,
+                    referenceDate.day
+                )
+            ],
             "Data ja registrada."
         );
-        // Add user to users array if not already included
+        // set refereceDateTimestamp
+        uint256 referenceDateTimestamp = BokkyPooBahsDateTimeLibrary
+            .timestampFromDate(
+                referenceDate.year,
+                referenceDate.month,
+                referenceDate.day
+            );
+        // Se o array de transacoes do usuario esta vazio, adiciona um elemento usuario ao array de usuarios, contendo o endereco do usuario
+        // essa verificacao eh mais simples do que correr o array de usuario e procurar o usuario nele
         if (userTransactions[msg.sender].length == 0) {
             users.push(msg.sender);
         }
 
-        ProductTransaction storage newTransactionRecord = transactionRecords[          ////////////////////////////
+        ProductTransaction storage newTransactionRecord = transactionRecords[
             nextTransactionId
         ];
-
         newTransactionRecord.userAddress = msg.sender;
         newTransactionRecord.referenceDate = referenceDate;
+        // le o  array de entrada
         for (uint256 i = 0; i < transactionsData.length; i++) {
             uint256 tankId = transactionsData[i].tankId;
             uint256 volume = transactionsData[i].volume;
+            uint256 tempDateTimestamp = 0;
+            // salva o dado completo da transação na estrutura transactionsData
             newTransactionRecord.transactions.push(transactionsData[i]);
+            // atualiza a lista de tanques do usuário
+            addTankIdIfNotPresent(tankId);
+            // atualiza o volumeIn total ou volumeOut total ou ultima posição de estoque (data e volume)
             if (transactionsData[i].transactionType == TransactionType.In) {
+                // volumeIn total
                 userVolumeIn[msg.sender][tankId] += volume;
             } else if (
                 transactionsData[i].transactionType == TransactionType.Out
             ) {
+                // volumeOut total
                 userVolumeOut[msg.sender][tankId] += volume;
+            } else if (
+                transactionsData[i].transactionType == TransactionType.Stock
+            ) {
+                // volumeStock ultimo
+                tempDateTimestamp = userVolumeStockDate[msg.sender][tankId];
+                if (referenceDateTimestamp >= tempDateTimestamp) {
+                    userVolumeStockDate[msg.sender][
+                        tankId
+                    ] = referenceDateTimestamp;
+                    userVolumeStock[msg.sender][tankId] = volume;
+                }
+                emit LogUint("Volume", userVolumeStock[msg.sender][tankId]);
             }
-            addTankIdIfNotPresent(tankId);
         }
+        // cria o próximo record no array userTransactions
         userTransactions[msg.sender].push(nextTransactionId);
+        // atualiza a lista de datas (de referencia) do usuario
         userDateRecords[msg.sender][referenceDateTimestamp] = true;
         nextTransactionId++;
     }
 
     //
-    // read transaction from the blockchain
+    // function readTransactions()
+    //
+    // le as transacoes gravadas
+    //
+    //      se usuario for owner - retorna todas as transacoes de todos os usuarios
+    //      se usuario nao for owner - retorna todas as suas transacoes
+    //
+    // function readTransactions(address userAddress)
+    //
+    //      se usuario for owner - retorna todas as transacoes do usuaririo userAddress
+    //      se usuario nao for owner - retorna todas as suas transacoes se userAddress igual ao usuario chamando a funcao,
+    //                                 retorna erro caso contrario
+    //
+    // retorno: usuario, data de referencia e um array dos dados gravados
     //
 
     function readTransactions()
@@ -216,7 +266,14 @@ contract LMC is Ownable {
     }
 
     //
-    // check if a record for date already exists - can be used by the front end to reject input without trying to write to the blockchain
+    // function checkRecordExists(referenceDate)
+    //
+    // pode ser usado pelo frontend para verificar antes de mandar gravar na blockchain
+    // caso o frontend nao faca essa verificacao, a funcao "recordTransaction" tambem verifica
+    //
+    // retorno bool:
+    // true - ja existe um record para o usuario que esta chamado a funcao na data referenceDate
+    // false - caso contrario
     //
 
     function checkRecordExists(ReferenceDate memory referenceDate)
@@ -233,120 +290,56 @@ contract LMC is Ownable {
     }
 
     //
-    // calculate volumes and last stock position for the user to check for consistency
+    // function calculateDivergence(userAddress opcional)
+    // 
+    // calcula divergencia %, por tanque, entre estoque contabil (total de volumeIn - total de volumeOut) 
+    // e fisico (volume de estoque informado na data de refencia mais recente para aquele tanque)
     //
-
-    function calculateVolumesGlobal()
-        public
-        view
-        returns (
-            int256 totalVolumeIn,
-            int256 totalVolumeOut,
-            int256 lastVolumeStock,
-            int256 volumeDivergence
-        )
-    {
-        uint256[] memory transactionIds = userTransactions[msg.sender];
-        uint256 tempDateTimestamp = 0;
-        uint256 latestDateTimestamp = 0;
-        totalVolumeIn = 0;
-        totalVolumeOut = 0;
-        lastVolumeStock = 0;
-        volumeDivergence = 0;
-
-        for (uint256 i = 0; i < transactionIds.length; i++) {
-            ProductTransaction memory transaction = transactionRecords[             ////////////////////////////////////////
-                transactionIds[i]
-            ];
-            tempDateTimestamp = BokkyPooBahsDateTimeLibrary.timestampFromDate(
-                transaction.referenceDate.year,
-                transaction.referenceDate.month,
-                transaction.referenceDate.day
-            );
-            for (uint256 j = 0; j < transaction.transactions.length; j++) {
-                TransactionData memory data = transaction.transactions[j];          /////////////////////////
-
-                if (data.transactionType == TransactionType.In) {
-                    totalVolumeIn += int256(data.volume);
-                } else if (data.transactionType == TransactionType.Out) {
-                    totalVolumeOut += int256(data.volume);
-                } else if (data.transactionType == TransactionType.Stock) {
-                    // Compare dates
-                    if (tempDateTimestamp > latestDateTimestamp) {
-                        latestDateTimestamp = tempDateTimestamp;
-                        lastVolumeStock = int256(data.volume);
-                    }
-                }
-            }
-        }
-
-        if (lastVolumeStock != 0) {
-            volumeDivergence =
-                int256(1e4) -
-                int256(
-                    ((totalVolumeIn - totalVolumeOut) * 1e4) / lastVolumeStock
-                );
-        } else {
-            volumeDivergence = 0;
-        }
-
-        return (
-            totalVolumeIn,
-            totalVolumeOut,
-            lastVolumeStock,
-            volumeDivergence
-        );
-    }
-
-    function calculateVolumes()
+    
+    // sem parametro de entrada - retorna divergencia do proprio usuario
+    function calculateDivergence()
         public
         view
         returns (TankVolumeCalculation[] memory)
     {
-        uint256[] memory tanks = userTanks[msg.sender];                     /////////////////////////////////
+        return calculateUserDivergence(msg.sender);
+    }
+
+   // com parametro de entrada - retorna divergencia de qualquer usuario (se chamada pelo owner) ou somente do proprio usuario (se chamada por nao-owner)
+    function calculateDivergence(address userAddress)
+        public
+        view
+        returns (TankVolumeCalculation[] memory)
+    {
+        require(
+            msg.sender == owner() || msg.sender == userAddress,
+            "Sem acesso. Apenas o owner pode ver outros usuarios."
+        );
+        return calculateUserDivergence(userAddress);
+    }
+
+    function calculateUserDivergence(address userAddress)
+        private
+        view
+        returns (TankVolumeCalculation[] memory)
+    {
+        // le array de tanques do usuario
+        uint256[] memory tanks = userTanks[userAddress];
+        // cria array de saida com o mesmo tamanho do array de tanques do usuairo
         TankVolumeCalculation[]
             memory tankCalculations = new TankVolumeCalculation[](tanks.length);
-
+        // calcula divergencia para cada tanque do usuario
         for (uint256 i = 0; i < tanks.length; i++) {
             uint256 tankId = tanks[i];
-            uint256 latestDateTimestamp = 0;
-            int256 volumeIn = int256(userVolumeIn[msg.sender][tankId]);
-            int256 volumeOut = int256(userVolumeOut[msg.sender][tankId]);
-            int256 lastStock = 0; // Initialize last stock volume
-            int256 divergence = 0; // Initialize volume divergence
-
-            uint256[] memory transactionIds = userTransactions[msg.sender];
-
-            for (uint256 j = 0; j < transactionIds.length; j++) {
-                ProductTransaction memory transaction = transactionRecords[             ////////////////////////////// storage
-                    transactionIds[j]
-                ];
-                for (uint256 k = 0; k < transaction.transactions.length; k++) {
-                    TransactionData memory data = transaction.transactions[k];           ////////////////////////////
-                    if (data.tankId == tankId) {
-                        if (data.transactionType == TransactionType.Stock) {
-                            uint256 tempDateTimestamp = BokkyPooBahsDateTimeLibrary
-                                    .timestampFromDate(
-                                        transaction.referenceDate.year,
-                                        transaction.referenceDate.month,
-                                        transaction.referenceDate.day
-                                    );
-                            if (tempDateTimestamp > latestDateTimestamp) {
-                                latestDateTimestamp = tempDateTimestamp;
-                                lastStock = int256(data.volume);
-                            }
-                        }
-                    }
-                }
-            }
-
-            divergence = 0;
+            int256 volumeIn = int256(userVolumeIn[userAddress][tankId]); // converte para int para permitir que o calculo da divergencia possa ser negativo
+            int256 volumeOut = int256(userVolumeOut[userAddress][tankId]); // converte para int para permitir que o calculo da divergencia possa ser negativo
+            int256 lastStock = int256(userVolumeStock[userAddress][tankId]); // converte para int para permitir que o calculo da divergencia possa ser negativo
+            int256 divergence = 0;
             if (lastStock != 0) {
                 divergence =
                     int256(1e4) -
                     int256(((volumeIn - volumeOut) * 1e4) / lastStock);
             }
-
             // Assigning the calculated values to the tankCalculations array
             tankCalculations[i] = TankVolumeCalculation(
                 tankId,
