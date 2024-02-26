@@ -209,11 +209,9 @@ function populateTable(transactions) {
     transactions.forEach(function(productTransaction) {
         // Format the reference date
         const formattedDate = formatDate(productTransaction.referenceDate);
-
         productTransaction.transactions.forEach(function(transactionData) {
             const row = table.insertRow();
             const cellValues = [
-                productTransaction.userAddress.substring(0, 6), //So mostra os 6 primeiros caracteres do endereco do usuario
                 formattedDate,
                 transactionTypeToString(transactionData.transactionType),
                 transactionData.tankId,
@@ -223,7 +221,6 @@ function populateTable(transactions) {
                 transactionData.productCode,
                 transactionData.invoiceXmlKey
             ];
-
             cellValues.forEach(function(value) {
                 const cell = row.insertCell();
                 cell.textContent = value.toString() || 'N/A'; // Handle null or undefined values
@@ -307,13 +304,29 @@ document.addEventListener('DOMContentLoaded', async function() {
 //
 
     document.getElementById('readDataButton').addEventListener('click', function() {
+        const table = document.getElementById('transactionsTableOutput').getElementsByTagName('tbody')[0];
+        table.innerHTML = ''; // Clear existing rows
+        const userAddressRead = document.getElementById('userAddress').value;
         web3.eth.getAccounts().then(accounts => {
             // Assuming the first account is the user's account
             const userAccount = accounts[0];
             document.getElementById("errorMessage").textContent = "Conta conectada: " + userAccount;
+            
+
+        // Check if userAddressDivergence is blank
+        console.log(userAddressRead);
+        if (userAddressRead === '') {
+            console.log("Branco")
             return contract.methods.readTransactions().call({
                 from: userAccount
             });
+        } else {
+            return contract.methods.readTransactions(userAddressRead).call({
+                from: userAccount
+            });
+        }            
+           
+            
         }).then(function(transactions) {
             console.log(transactions);
             // Adjust transactions data here
@@ -330,6 +343,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             populateTable(adjustedTransactions);
         }).catch(function(error) {
             console.error("Error reading transactions:", error);
+            alert("Erro: "+error);
         });
     });
 
@@ -339,21 +353,35 @@ document.addEventListener('DOMContentLoaded', async function() {
 // CALCULAR DIVERGENCIAS
 //
 
-    document.getElementById('calculateVolumesButton').addEventListener('click', function() {
-        web3.eth.getAccounts().then(accounts => {
-            // Assuming the first account is the user's account
-            const userAccount = accounts[0];
-            document.getElementById("errorMessage").textContent = "Conta conectada: " + userAccount;
+//document.getElementById('calculateVolumesButton').addEventListener('click', function() {
+document.getElementById('readDataButton').addEventListener('click', function() {
+    const table = document.getElementById('volumesTableOutput').getElementsByTagName('tbody')[0];
+    table.innerHTML = ''; // Clear existing rows
+    const userAddressDivergence = document.getElementById('userAddress').value;
+    web3.eth.getAccounts().then(accounts => {
+        // Assuming the first account is the user's account
+        const userAccount = accounts[0];
+        document.getElementById("errorMessage").textContent = "Conta conectada: " + userAccount;
+
+        // Check if userAddressDivergence is blank
+        if (userAddressDivergence === '') {
             return contract.methods.calculateDivergence().call({
                 from: userAccount
             });
-        }).then(function(volumeCalculations) {
-            console.log(volumeCalculations);
-            displayVolumeCalculations(volumeCalculations);
-        }).catch(function(error) {
-            console.error("Error calculating volumes:", error);
-        });
+        } else {
+            return contract.methods.calculateDivergence(userAddressDivergence).call({
+                from: userAccount
+            });
+        }
+        
+    }).then(function(volumeCalculations) {
+        console.log(volumeCalculations);
+        displayVolumeCalculations(volumeCalculations);
+    }).catch(function(error) {
+        console.error("Error calculating volumes:", error);
     });
+});
+
 
     function displayVolumeCalculations(volumeCalculations) {
         const table = document.getElementById('volumesTableOutput').getElementsByTagName('tbody')[0];
@@ -369,11 +397,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 Number(calculation.volumeDivergence) / 100 // Divided by 100
             ];
 
-            cellValues.forEach(function(value, index) {
-                const cell = row.insertCell();
-                // Format the value with two decimal places for the divided fields
-                cell.textContent = (index > 0) ? (value.toFixed(2) || 'N/A') : value.toString();
-            });
+cellValues.forEach(function(value, index) {
+    const cell = row.insertCell();
+    // Check if the value is a number and format accordingly
+    cell.textContent = (typeof value === 'number') ? value.toFixed(2) : value.toString();
+});
+
         });
     }
 

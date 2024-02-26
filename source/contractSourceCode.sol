@@ -1,39 +1,55 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+//
+//
+// LMC Smart Contract - V3.2
+//
+// Smart contract to digitally replicate the process of recording data in the Fuel Movement Logbook
+// ("Livro de Movimentação de Combustíveis" - LMC), a daily requirement for Brazilian fuel stations,
+// utilizing a blockchain framework.
+//
+// See more at
+// https://github.com/jpfranca-br/lmc
+//
 
+pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
-//import "BokkyPooBahsDateTimeLibrary.sol";
-import "https://github.com/bokkypoobah/BokkyPooBahsDateTimeLibrary/blob/master/contracts/BokkyPooBahsDateTimeLibrary.sol"; // to check if a date is valid
+import "https://github.com/bokkypoobah/BokkyPooBahsDateTimeLibrary/blob/master/contracts/BokkyPooBahsDateTimeLibrary.sol";
 
 contract LMC is Ownable {
-    enum TransactionType {
-        In,
-        Out,
-        Stock
-    }
 
-    struct TransactionData {
-        TransactionType transactionType;
-        uint256 tankId;
-        uint256 nozzleId;
-        uint256 volume;
-        uint256 cash;
-        uint256 productCode;
-        uint256 invoiceXmlKey;
-    }
-
+    // subestrutura transacao - data de referencia
     struct ReferenceDate {
         uint256 year;
         uint256 month;
         uint256 day;
     }
 
-    struct ProductTransaction {
-        address userAddress;
-        ReferenceDate referenceDate;
-        TransactionData[] transactions;
+    // subsubestrutura transacao - tipos
+    enum TransactionType {
+        In, // entrada de notas fiscais
+        Out, // saida de produtos = abastecimentos
+        Stock // medida do estoque fisico
     }
 
+    // subestrutura transacao - core
+    struct TransactionData {
+        TransactionType transactionType; // tipo definido acima
+        uint256 tankId; // id do tanque
+        uint256 nozzleId; // id do bico da bomba
+        uint256 volume; // volume
+        uint256 cash; // valor
+        uint256 productCode; // codigo do produto
+        uint256 invoiceXmlKey; // chave da nota fiscal (entrada)
+    }
+
+    // estrutura transacao
+    struct ProductTransaction {
+        address userAddress;             // endereco
+        ReferenceDate referenceDate;     // data
+        TransactionData[] transactions;  // tipo, tankId, nozzleId, volume, cash, productCode, invoiceXmlKey
+    }
+
+    // estrutura para calculo de divergencia contabil-fisica
     struct TankVolumeCalculation {
         uint256 tankId;
         int256 totalVolumeIn;
@@ -43,26 +59,32 @@ contract LMC is Ownable {
     }
 
     uint256 private nextTransactionId = 1;
-    event Log(string message);
-    event LogUint(string message, uint256 value);
-    mapping(uint256 => ProductTransaction) public transactionRecords;
+    // userTransactions[endereco_usuario] = [ids_transacoes]                              // array dos ids de transacao de cada usuario
     mapping(address => uint256[]) private userTransactions;
-    mapping(address => mapping(uint256 => bool)) private userDateRecords;
-    mapping(address => uint256[]) private userTanks;
-    mapping(address => mapping(uint256 => uint256)) public userVolumeStockDate;
-    mapping(address => mapping(uint256 => uint256)) public userVolumeStock;
-    mapping(address => mapping(uint256 => uint256)) private userVolumeIn;
-    mapping(address => mapping(uint256 => uint256)) private userVolumeOut;
+    // transactionRecords[id_transacao] = estrutura do tipo ProductTansaction             // detalhes da transacao (id_transacao) - estrutura principal de armazenamento.
+    mapping(uint256 => ProductTransaction) private transactionRecords;
+    // users[indice] = endereco_usuario                                                   // usuarios que gravaram na blockchain. Nao esta sendo usado, previsao para auditoria futura.
     address[] private users;
+    // userDateRecords[endereco_usuario][timestamp_data_referencia] = bool                // datas de referencia que o usuario registrou, usado para verificar se o usuario já registrou algo na data
+    mapping(address => mapping(uint256 => bool)) private userDateRecords;
+    // userTanks[endereco_usuario] = [tanques que o usuario registrou]                    // para calcular divergencia mais facilmente, ja que os tanques nao sao necessariamente incrementais
+    mapping(address => uint256[]) private userTanks;
+    // userVolumeStockDate[endereco_usuario][tanque] = maior timestamp da data de estoque // para calcular divergencia mais facilmente
+    mapping(address => mapping(uint256 => uint256)) private userVolumeStockDate;
+    // userVolumeStock[endereco_usuario][tanque] = volume de estoque na data acima        // para calcular divergencia mais facilmente
+    mapping(address => mapping(uint256 => uint256)) private userVolumeStock;
+    // userVolumeIn[endereco_usuario][tanque] = soma dos volumes de entrada               // para calcular divergencia mais facilmente
+    mapping(address => mapping(uint256 => uint256)) private userVolumeIn;
+    // userVolumeIn[endereco_usuario][tanque] = soma dos volumes de saida                 // para calcular divergencia mais facilmente
+    mapping(address => mapping(uint256 => uint256)) private userVolumeOut;
 
     constructor() Ownable(msg.sender) {}
 
-    // Function to add tankId to userTanks if it's not already there
+    // Funcao para atualizar userTanks (se o tanque nao estiver presente)
     function addTankIdIfNotPresent(uint256 tankId) private {
-        // Retrieve the user's tank array
+        // Le o array de tanques do usuario
         uint256[] memory tanks = userTanks[msg.sender];
-
-        // Check if tankId is already in the array
+        // Verifica se o  tanque esta no array
         bool isPresent = false;
         for (uint256 i = 0; i < tanks.length; i++) {
             if (tanks[i] == tankId) {
@@ -70,22 +92,27 @@ contract LMC is Ownable {
                 break;
             }
         }
-
-        // If tankId is not present, add it to the array
+        // Se nao estiver, adiciona
         if (!isPresent) {
             userTanks[msg.sender].push(tankId);
         }
     }
 
     //
-    // record transaction to the blockchain
-    //
+    // Funcao para gravar a estrutura de dados na blockchain
+    // 
+    // 
+    // os dados de entrada são no formato
+    // [yyyy,mm,dd],[[tipo = 0 para In 1 para Out 2 para Estoque,tanque,bico (somente Out),volume,valor (para In e Out),codigo produto (somente In),chave XML nota (somente In)],...]
+    // exemplo
+    // [2024,2,14],[[0,0,0,10,0,0,0],[1,0,0,2,0,0,0],[2,0,0,8,0,0,0]]
+    // 
 
     function recordTransaction(
         ReferenceDate memory referenceDate,
         TransactionData[] memory transactionsData
     ) public {
-        // Check - date valid?
+        // Verifica se a data é válida
         require(
             BokkyPooBahsDateTimeLibrary.isValidDate(
                 referenceDate.year,
@@ -94,7 +121,7 @@ contract LMC is Ownable {
             ),
             "Data invalida."
         );
-        // Check - only one referenceDate per user can be stored on the blockchain
+        // Verifica se a data já está registrada
         require(
             !userDateRecords[msg.sender][
                 BokkyPooBahsDateTimeLibrary.timestampFromDate(
@@ -105,7 +132,7 @@ contract LMC is Ownable {
             ],
             "Data ja registrada."
         );
-        // set refereceDateTimestamp
+        // Converte data de referencia em timestamp
         uint256 referenceDateTimestamp = BokkyPooBahsDateTimeLibrary
             .timestampFromDate(
                 referenceDate.year,
@@ -113,90 +140,82 @@ contract LMC is Ownable {
                 referenceDate.day
             );
         // Se o array de transacoes do usuario esta vazio, adiciona um elemento usuario ao array de usuarios, contendo o endereco do usuario
-        // essa verificacao eh mais simples do que correr o array de usuario e procurar o usuario nele
+        // essa verificacao eh mais simples do que correr o array de usuario procurando por ele
+        // para arrays dinamicos, preciso fazer "push"
         if (userTransactions[msg.sender].length == 0) {
             users.push(msg.sender);
         }
-
-        ProductTransaction storage newTransactionRecord = transactionRecords[
-            nextTransactionId
-        ];
+        // cria mais um registro de transacao
+        // atencao a forma como o solidity lida com storage. aqui esta referenciando newTransactionRecord a estrutura  (nova ou existente)
+        // transactionsRecords[nextTranscationId]. Toda alteracao em newTransactionRecord altera o que esta armazenado
+        // comportamento bem diferente de como estamos acostumados a lidar com variaveis em memoria
+        ProductTransaction storage newTransactionRecord = transactionRecords[nextTransactionId];
+        // cada registro tem somente um usuario e uma data de referencia
+        // e depois varias linhas com as entradas, saidas, estoques informados para aquela data
+        // popula com endereco do usuario e data de referencia
         newTransactionRecord.userAddress = msg.sender;
         newTransactionRecord.referenceDate = referenceDate;
-        // le o  array de entrada
+        // le o  array de entrada da funcao
         for (uint256 i = 0; i < transactionsData.length; i++) {
+            // busca os dados de entrada e atualiza na newTransactionRecord
+            newTransactionRecord.transactions.push(transactionsData[i]);
+            // le variaveis de tankId e volume para atualizar os acumuladores de volumeIn, volumeOut, assim como ultima posicao de estoque
             uint256 tankId = transactionsData[i].tankId;
             uint256 volume = transactionsData[i].volume;
             uint256 tempDateTimestamp = 0;
-            // salva o dado completo da transação na estrutura transactionsData
-            newTransactionRecord.transactions.push(transactionsData[i]);
             // atualiza a lista de tanques do usuário
             addTankIdIfNotPresent(tankId);
             // atualiza o volumeIn total ou volumeOut total ou ultima posição de estoque (data e volume)
+            // dependendo do tipo de transacao
+            // para transacao tipo In
             if (transactionsData[i].transactionType == TransactionType.In) {
-                // volumeIn total
+                // atualiza o acumulador volumeIn
                 userVolumeIn[msg.sender][tankId] += volume;
             } else if (
+                // para transacao tipo Out
                 transactionsData[i].transactionType == TransactionType.Out
             ) {
-                // volumeOut total
+                // atualiza o acumulador volumeOut
                 userVolumeOut[msg.sender][tankId] += volume;
             } else if (
+                // para transacao tipo Stock
                 transactionsData[i].transactionType == TransactionType.Stock
             ) {
-                // volumeStock ultimo
+                // verifica se o timestamp informado é maior que o armazenado
                 tempDateTimestamp = userVolumeStockDate[msg.sender][tankId];
                 if (referenceDateTimestamp >= tempDateTimestamp) {
+                    // guarda novo timestamp
                     userVolumeStockDate[msg.sender][
                         tankId
                     ] = referenceDateTimestamp;
+                    // guarda nova posicao de estoque
                     userVolumeStock[msg.sender][tankId] = volume;
                 }
-                emit LogUint("Volume", userVolumeStock[msg.sender][tankId]);
             }
         }
-        // cria o próximo record no array userTransactions
+        // adiciona o id da transacao no array de transacoes do usuario 
         userTransactions[msg.sender].push(nextTransactionId);
-        // atualiza a lista de datas (de referencia) do usuario
+        // adiciona a data de referencia no array de datas do usuario
         userDateRecords[msg.sender][referenceDateTimestamp] = true;
         nextTransactionId++;
     }
 
     //
-    // function readTransactions()
-    //
-    // le as transacoes gravadas
-    //
-    //      se usuario for owner - retorna todas as transacoes de todos os usuarios
-    //      se usuario nao for owner - retorna todas as suas transacoes
-    //
-    // function readTransactions(address userAddress)
-    //
-    //      se usuario for owner - retorna todas as transacoes do usuaririo userAddress
-    //      se usuario nao for owner - retorna todas as suas transacoes se userAddress igual ao usuario chamando a funcao,
-    //                                 retorna erro caso contrario
-    //
+    // function readTransactions(userAddress opcional)
+    // retorna transacoes do usuario
     // retorno: usuario, data de referencia e um array dos dados gravados
     //
 
+    // sem parametro de entrada - retorna a própria divergencia
     function readTransactions()
         public
         view
         returns (ProductTransaction[] memory)
     {
-        ProductTransaction[] memory transactions;
-
-        if (msg.sender == owner()) {
-            // Owner fetches transactions for all users
-            transactions = getAllTransactions();
-        } else {
-            // Regular user fetches their own transactions
-            transactions = getUserTransactions(msg.sender);
-        }
-
-        return transactions;
+        return getUserTransactions(msg.sender);
     }
 
+    // com parametro de entrada - retorna divergencia de qualquer usuario (se chamada pelo owner) ou somente do proprio usuario (se chamada por nao-owner)
     function readTransactions(address userAddress)
         public
         view
@@ -204,46 +223,9 @@ contract LMC is Ownable {
     {
         require(
             msg.sender == owner() || msg.sender == userAddress,
-            "Unauthorized access: Owner can access all user transactions. Regular user can only access own transactions. Same as calling without argument"
+            "Acesso nao autorizado. Somente a ANP pode ver dados de outros usuarios. Deixe o campo do endereco em branco ou coloque o seu proprio endereco."
         );
-        ProductTransaction[] memory transactions;
-        if (address(this) == owner()) {
-            // Owner fetches transactions for any user
-            transactions = getUserTransactions(userAddress);
-        } else {
-            // Regular user fetches their own transactions
-            transactions = getUserTransactions(msg.sender);
-        }
-        return transactions;
-    }
-
-    function getAllTransactions()
-        private
-        view
-        returns (ProductTransaction[] memory)
-    {
-        ProductTransaction[] memory allTransactions;
-        uint256 totalTransactionCount = 0;
-
-        for (uint256 i = 0; i < users.length; i++) {
-            totalTransactionCount += userTransactions[users[i]].length;
-        }
-
-        allTransactions = new ProductTransaction[](totalTransactionCount);
-        uint256 currentIndex = 0;
-
-        for (uint256 i = 0; i < users.length; i++) {
-            for (uint256 j = 0; j < userTransactions[users[i]].length; j++) {
-                uint256 transactionId = userTransactions[users[i]][j];
-                allTransactions[currentIndex] = transactionRecords[
-                    transactionId
-                ];
-                allTransactions[currentIndex].userAddress = users[i];
-                currentIndex++;
-            }
-        }
-
-        return allTransactions;
+        return getUserTransactions(userAddress);
     }
 
     function getUserTransactions(address userAddress)
@@ -251,17 +233,18 @@ contract LMC is Ownable {
         view
         returns (ProductTransaction[] memory)
     {
+        // recupera array de transactionIds do usuario
         uint256[] memory transactionIds = userTransactions[userAddress];
+        // cria um array de transacoes da altura do array acima
         ProductTransaction[]
             memory userTransactionData = new ProductTransaction[](
                 transactionIds.length
             );
-
+        // recupera transacoes do usuario e grava nesse array de transacoes
         for (uint256 i = 0; i < transactionIds.length; i++) {
             userTransactionData[i] = transactionRecords[transactionIds[i]];
-            userTransactionData[i].userAddress = userAddress;
         }
-
+        // retorna array de transacoes
         return userTransactionData;
     }
 
@@ -291,12 +274,12 @@ contract LMC is Ownable {
 
     //
     // function calculateDivergence(userAddress opcional)
-    // 
-    // calcula divergencia %, por tanque, entre estoque contabil (total de volumeIn - total de volumeOut) 
+    //
+    // calcula divergencia %, por tanque, entre estoque contabil (total de volumeIn - total de volumeOut)
     // e fisico (volume de estoque informado na data de refencia mais recente para aquele tanque)
     //
-    
-    // sem parametro de entrada - retorna divergencia do proprio usuario
+
+    // sem parametro de entrada - retorna a própria divergencia
     function calculateDivergence()
         public
         view
@@ -305,7 +288,7 @@ contract LMC is Ownable {
         return calculateUserDivergence(msg.sender);
     }
 
-   // com parametro de entrada - retorna divergencia de qualquer usuario (se chamada pelo owner) ou somente do proprio usuario (se chamada por nao-owner)
+    // com parametro de entrada - retorna divergencia de qualquer usuario (se chamada pelo owner) ou somente do proprio usuario (se chamada por nao-owner)
     function calculateDivergence(address userAddress)
         public
         view
@@ -318,6 +301,7 @@ contract LMC is Ownable {
         return calculateUserDivergence(userAddress);
     }
 
+    // funcao que realiza o calculo
     function calculateUserDivergence(address userAddress)
         private
         view
@@ -325,22 +309,23 @@ contract LMC is Ownable {
     {
         // le array de tanques do usuario
         uint256[] memory tanks = userTanks[userAddress];
-        // cria array de saida com o mesmo tamanho do array de tanques do usuairo
+        // cria array de saida com altura  array de tanques do usuairo
         TankVolumeCalculation[]
             memory tankCalculations = new TankVolumeCalculation[](tanks.length);
-        // calcula divergencia para cada tanque do usuario
+        // loop pro todos os tanques do usuario
         for (uint256 i = 0; i < tanks.length; i++) {
             uint256 tankId = tanks[i];
             int256 volumeIn = int256(userVolumeIn[userAddress][tankId]); // converte para int para permitir que o calculo da divergencia possa ser negativo
             int256 volumeOut = int256(userVolumeOut[userAddress][tankId]); // converte para int para permitir que o calculo da divergencia possa ser negativo
             int256 lastStock = int256(userVolumeStock[userAddress][tankId]); // converte para int para permitir que o calculo da divergencia possa ser negativo
             int256 divergence = 0;
+            // so calcula se o denominador <> 0
             if (lastStock != 0) {
                 divergence =
                     int256(1e4) -
                     int256(((volumeIn - volumeOut) * 1e4) / lastStock);
             }
-            // Assigning the calculated values to the tankCalculations array
+            // Grava os valores calculados no array
             tankCalculations[i] = TankVolumeCalculation(
                 tankId,
                 volumeIn,

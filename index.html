@@ -1,78 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <title>LMC na Blockchain</title>
+    <title>LMC dApp</title>
     <meta charset="UTF-8">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.5.0/web3.min.js"></script>
     <script src="./scripts/app.js"></script>
     <style>
-      body {
-        font-family: Verdana, sans-serif;
-      }
-      td {
-        text-align: center;
-        border: 1px solid black;
-        overflow: hidden;
-        text-overflow: ellipsis; /* This will add '...' for overflowing text */
-        white-space: nowrap; /* Prevents text from wrapping to the next line */
-      }
-      th {
-        text-align: center;
-        border: 1px solid black; 
-      }
-      
-      table {
-        border-collapse: collapse; 
-      }
+        body {
+            font-family: Verdana, sans-serif;
+        }
 
-      }
+        td {
+            text-align: center;
+            border: 1px solid black;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            /* This will add '...' for overflowing text */
+            white-space: nowrap;
+            /* Prevents text from wrapping to the next line */
+        }
+
+        th {
+            text-align: center;
+            border: 1px solid black;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        }
     </style>
 </head>
 
 <body onLoad=addRow()>
-    <h1><a href="https://github.com/jpfranca-br/lmc" target=_new><img src="./images/github-mark.png" width=50px alt="GitHub Logo">LMC na Blockchain</a></h1>
+    <h1><a href="https://github.com/jpfranca-br/lmc" target=_new><img src="./images/github-mark.png" width=50px alt="GitHub Logo">LMC dApp</a></h1>
     <div id="errorMessage" style="color: blue;">...</div><br>
     <b>
-    <div>
-        <label for="referenceDate">Data de Referência</label>
-        <input type="date" id="referenceDate">
-    </div>
+        <div>
+            <label for="referenceDate">Data: </label>
+            <input type="date" id="referenceDate">
+        </div>
     </b>
-    <br><br>
-    <!-- Table for transaction data -->
+    <br>
     <table id="transactionsTableInput">
-            <tr>
-                <th style="width: 280px;">Tipo</th>
-                <th style="width: 80px;">Tanque</th>
-                <th style="width: 80px;">Bico</th>
-                <th style="width: 160px;">Vol</th>
-                <th style="width: 160px;">R$</th>
-                <th style="width: 80px;">Produto</th>
-                <th style="width: 380px;">Chave XML</th>
-                <th style="width: 30px;"></th>
-                <th style="width: 30px;"></th>
-            </tr>
+        <tr>
+            <th style="width: 200px;">Tipo</th>
+            <th style="width: 80px;">Tanque</th>
+            <th style="width: 80px;">Bico</th>
+            <th style="width: 160px;">Volume</th>
+            <th style="width: 160px;">R$</th>
+            <th style="width: 80px;">Produto</th>
+            <th style="width: 380px;">Chave XML</th>
+            <th style="width: 30px;"></th>
+            <th style="width: 30px;"></th>
+        </tr>
     </table>
-
-    <!-- Submit button -->
-    <BR><BR><BR>
+    <BR>
     <button id="submitTransactionButton">Enviar</button>
-
-    <br><br><br><hr><br><br><br>
-
-    <button id="readDataButton">Recuperar Dados Enviados - Usuário Conectado ou Todos (Owner)</button>
-    
+    <br><br>
+    <hr>
+    <br>
+    <b>
+        <div>
+            <label for="userAddress">Endereço: </label>
+            <input type="text" style="width: 320px;" id="userAddress">
+        </div>
+    </b>
+    <br>
+    <button id="readDataButton"> Ler </button>
+    <br><br>
     <table id="transactionsTableOutput">
         <thead>
             <tr>
-                <th style="width: 80px;">Usuário</th>
                 <th style="width: 118px;">Data</th>
                 <th style="width: 80px;">Tipo</th>
                 <th style="width: 80px;">Tanque</th>
                 <th style="width: 80px;">Bico</th>
-                <th style="width: 160px;">Vol</th>
+                <th style="width: 160px;">Volume</th>
                 <th style="width: 160px;">R$</th>
                 <th style="width: 80px;">Produto</th>
                 <th style="width: 380px;">Chave XML</th>
@@ -83,17 +89,18 @@
         </tbody>
     </table>
 
-    <br><br><br><hr><br><br><br>    
-        
-<button id="calculateVolumesButton">Calcular Divergencias - Usuário Conectado</button>
-<table id="volumesTableOutput">
+    <br>
+    <hr>
+    <br>
+
+    <table id="volumesTableOutput">
         <thead>
             <tr>
-                <th style="width: 160px;">Tanque</th>
+                <th style="width: 200px;">Tanque</th>
                 <th style="width: 160px;">Vol Entrada</th>
                 <th style="width: 160px;">Vol Saída</th>
                 <th style="width: 160px;">Vol Estoque</th>
-                <th style="width: 160px;">Divergência (%)</th>
+                <th style="width: 80px;">Div (%)</th>
             </tr>
         </thead>
         <tbody>
