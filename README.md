@@ -22,4 +22,4 @@ Team Members: Elisa Santos, João Paulo M. França, Marcello Rubioli, Marcus Ghe
 
 --------
 
-![Sequence Diagram](https://github.com/jpfranca-br/lmc/blob/main/images/sequencediagram.png)
+
