@@ -1,0 +1,85 @@
+# https://sequencediagram.org/
+
+title LMC dAPP
+
+actor "Revendedor" as R
+participant "FrontEnd LMC dApp" as F
+participant "Smart Contract/Blockchain" as S
+actor "Owner (ANP, SEFAZ, CADE)" as GOV
+
+== Setup Inicial ==
+GOV -> S : cria contrato
+GOV -> F : disponibiliza front end
+R -> R : cria conta
+R -> F : registra conta
+F -> GOV : informa conta pendente aprovação
+GOV -> F : aprova conta
+F -> R : informa conta aprovada
+== Operação ==
+R -> R : diário: recebe NF de compra de comb\n+ coleta dados de vendas por bico\n+ mede níveis de tanque
+R -> F : abre LMC dApp
+F -> R : se não conectado, solicita conexão com Metamask
+R -> R : conecta com Metamask
+R -> F : adiciona data e dados e clica no botão Enviar
+note over F : um registro por data
+F -> S : checkRecordExists(ReferenceDate)
+S -> S : verifica se já existe registro para a data, para o usuário
+S -> F : response bool
+alt Existe
+    F -> R : alerta usuário e não permite registro
+    R -> R : corrige e recomeça
+else Não existe
+    F -> S : recordTransaction(referenceDate, transactionData[])
+    linear
+        S -> F : pede confirmação do uso de gas
+        F -> R : pede confirmação do uso de gas
+        R -> F : autoriza
+        F -> S : autoriza
+    linear off
+    S -> S : verifica se a data é válida DateTimeLibrary.isValidDate
+    S -> S : verifica se já existe registro para a data\nuserDateRecords[msg.sender]
+    alt Data inválida ou já registrada
+        S -> S : revert
+        linear
+            S -> F : informa data já registrada
+            F -> R : alerta usuário e não permite registro
+        linear off
+        R -> R : corrige e recomeça
+    else Data ainda não registrada
+        S -> S : calcula e armazena
+        note over S : Atualiza array de usuarios, de id trx,\ntotalizador de volume In, volume Out,\nposição e data mais recente de estoque,\ntanques, datas.\n\nArmazena transação detalhada.
+        S -> S : aguarda confirmação na blockchain
+        linear
+            S -> F : dados da transação registrada
+            F -> R : dados da transação registrada
+        linear off
+    end
+end
+
+== Leitura de Dados ==
+
+parallel
+    GOV -> F : preenche endereço e clica botão Ler
+    R -> F : preenche endereço e clica botão Ler
+parallel off
+F -> S : readTransactions(userAddress opcional)
+F -> S : calculateDivergence(userAddress opcional)
+S -> S : userAddress não nulo,\ndiferente de msg.sender\ne msg.sender não é owner?
+alt sim
+    parallel
+        S -> F : somente owner pode ver transações de outro usuário
+        F -> R : somente owner pode ver transações de outro usuário
+    parallel off
+    R -> R : corrige e recomeça
+else não
+    S -> S : varre transações de userAddres\nou msg.sender (se userAddress nulo)
+    S -> F : retorna transações
+    F -> F : popula tabela de transações
+    S -> S : calcula divergência entre estoque\ncontábil e físico por tanque\n(volumeIn-volumeOut) / \n(volumeEstoqueMaisRecente)
+    S -> F : retorna divergências por tanque
+    F -> F : popula tabela de divergências
+    parallel
+        F -> R : mostra transações e divergências
+        F -> GOV : mostra transações e divergências
+    parallel off
+end
