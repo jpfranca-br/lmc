@@ -2,7 +2,7 @@
 
 This project aims to digitally replicate the process of recording data in the Fuel Movement Logbook ("Livro de Movimentação de Combustíveis" - LMC), a daily requirement for Brazilian fuel stations, utilizing a blockchain framework.
 
-This dApp was created as the capstone project for the "Blockchain and Smart Contracts for Digital Transformation" course, a key component of the "Master in Digital Transformation" Postgraduate Specialization Program at PUC-Rio.
+This dApp was created as the final project for the "Blockchain and Smart Contracts for Digital Transformation" course, a key component of the "Master in Digital Transformation" Postgraduate Specialization Program at PUC-Rio.
 
 Explore the Smart Contract:
 [Sepolia Testnet Contract Address](https://sepolia.etherscan.io/address/0x7F7AB656FB7b75C8f7d27e05f272C39698e10110)
